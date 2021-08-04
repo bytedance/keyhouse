@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package key;
+
+// Opaque data key blob sent to clients for encoding
+message DataKey {
+    bytes key = 1;
+    uint32 timestamp = 2;
+    uint32 key_id = 3;
+    uint32 key_version = 4;
+}
+
+// SDK returns this for encode operations
+message EncodedBlob {
+    bytes data = 1;
+    uint32 version = 2;
+    bytes encoded_key = 3;
+    bytes region = 4;
+}

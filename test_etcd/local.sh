@@ -1,0 +1,2 @@
+#!/bin/bash
+etcd --cert-file=../certs/etcd/cert.pem --key-file=../certs/etcd/key.pem --client-cert-auth=true --trusted-ca-file=../certs/etcd/ca.crt --advertise-client-urls="https://localhost:2379" --listen-client-urls="https://localhost:2379"

@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+//option java_multiple_files = true;
+//option java_package = "";
+//option java_outer_classname = "";
+
+package kms;
+
+// The keyhouse service definition
+service Kms {
+  rpc EncodeDataKey(EncodeDataKeyRequest) returns (EncodeDataKeyResponse) {};
+  rpc DecodeDataKey(DecodeDataKeyRequest) returns (DecodeDataKeyResponse) {};
+  rpc PingPong(PingPongRequest) returns (PingPongResponse) {};
+  rpc GetSecret(GetSecretRequest) returns (GetSecretResponse) {};
+  rpc GetSecrets(GetSecretsRequest) returns (GetSecretsResponse) {};
+  rpc StoreSecret(StoreSecretRequest) returns (StoreSecretResponse) {};
+  rpc GetLegacyKey(GetLegacyKeyRequest) returns (GetLegacyKeyResponse) {};
+}
+
+// The request message for encoding services
+message EncodeDataKeyRequest {
+  string token = 1;
+  string alias = 2; // Key Alias is a semantic reference to a unique key. It consists of a 8 or more ASCII characters limited to alphanum and (_)  and (-) characters followed by the version, prefixed with the KeyRing ID that key belongs to. Key Alias is an optional field and is defaulted to Key ID.
+}
+
+// The request message for decoding services
+message DecodeDataKeyRequest {
+  string token = 1;
+  bytes encoded_key = 2; // encoded key with metadata
+}
+
+// The response message for encoding services
+message EncodeDataKeyResponse {
+  int32 error_code = 1;
+  bytes encoded_key = 2; // encoded key with metadata
+  bytes decoded_key = 3; // 256-bit key
+}
+
+// The response message for encoding services
+message DecodeDataKeyResponse {
+  int32 error_code = 1;
+  bytes decoded_key = 2; // 256-bit key
+}
+
+// The request message for Ping Pong service
+message PingPongRequest {
+  string token = 1;
+  bytes timestamp = 2; // unix ms epoch for creation time
+}
+
+// The response message for Ping Pong service
+message PingPongResponse {
+  int32 error_code = 1;
+  bytes timestamp = 2; // unix ms epoch for creation time
+}
+
+// The request message for Sign
+message SignRequest {
+  string token = 1;
+  string alias = 2; // Key Alias is a semantic reference to a unique key. It consists of a 8 or more ASCII characters limited to alphanum and (_)  and (-) characters followed by the version, prefixed with the KeyRing ID that key belongs to. Key Alias is an optional field and is defaulted to Key ID.
+  bytes orig_hash = 3; // SHA512 hash of they key id that has given alias
+}
+
+// The response message for Sign and Verify services
+message VerifyResponse {
+  int32 error_code = 1;
+  bool verified = 2; // status of the verification
+}
+
+// The request message for GetSecret
+message GetSecretRequest {
+  string token = 1;
+  string alias = 2; // Key Alias is a semantic reference to a unique secret. It consists of a 8 or more ASCII characters limited to alphanum and (_) and (-) characters, prefixed with the KeyRing Alias and Customer Key Alias that key belongs to.
+}
+
+// The response message for GetSecret
+message GetSecretResponse {
+  int32 error_code = 1;
+  string secret = 2;
+}
+
+// The request message for GetSecrets
+message GetSecretsRequest {
+  string token = 1;
+  string alias = 2; // Key Alias is a semantic reference to a unique customer key. It consists of a 8 or more ASCII characters limited to alphanum and (_) and (-) characters, prefixed with the KeyRing Alias that key belongs to.
+}
+
+// The response message for GetSecrets
+message GetSecretsResponse {
+  int32 error_code = 1;
+  map<string, string> secrets = 2; // map of secret alias (without customer key or keyring alias) to secret values for the given customer key
+}
+
+// The request message for StoreSecret
+message StoreSecretRequest {
+  string token = 1;
+  string alias = 2; // Key Alias is a semantic reference to a unique secret. It consists of a 8 or more ASCII characters limited to alphanum and (_) and (-) characters, prefixed with the KeyRing Alias and Customer Key Alias that key belongs to.
+  string secret = 3;
+}
+
+// The response message for StoreSecret
+message StoreSecretResponse {
+  int32 error_code = 1;
+}
+
+// The request message for decoding services
+message GetLegacyKeyRequest {
+  string token = 1;
+  string alias = 2; // Key Alias is a semantic reference to a unique key. It consists of a 8 or more ASCII characters limited to alphanum and (_)  and (-) characters followed by the version, prefixed with the KeyRing ID that key belongs to. Key Alias is an optional field and is defaulted to Key ID.
+}
+
+// The response message for encoding services
+message GetLegacyKeyResponse {
+  int32 error_code = 1;
+  bytes data_key = 2;
+}

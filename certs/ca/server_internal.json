@@ -1,0 +1,17 @@
+{
+    "hosts": ["spiffe://bytem-test/id:server_internal"],
+    "key": {
+        "algo": "ecdsa",
+        "size": 256
+    },
+    "names": [
+        {
+            "C": "US",
+            "L": "CA",
+            "O": "ByteDance",
+            "ST": "San Francisco",
+            "OU": "Security"
+        }
+    ]
+}
+

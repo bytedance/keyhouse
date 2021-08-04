@@ -1,0 +1,58 @@
+[package]
+name = "keyhouse"
+version = "0.1.0"
+authors = ["Max Bruce <max.bruce12@gmail.com>", "Sergey Shekyan <shekyan@gmail.com>", "Yu Ding <dingelish@gmail.com>"]
+edition = "2018"
+build = "build.rs"
+license = "Apache-2.0"
+description = "keyhouse key management system"
+homepage = "https://github.com/bytedance/keyhouse"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tonic = { version = "0.5", features = ["tls"] }
+prost = "0.8"
+tokio = { version = "1.0", features = ["full"] }
+log = "0.4"
+env_logger = "0.8"
+threadgroup = "0.1"
+rustls = { version = "0.19", features = ["dangerous_configuration"] }
+webpki = "0.21"
+lazy_static = "1.4"
+rand = "0.8"
+sentry = "0.22"
+url = "2.2"
+etcd-rs = { version = "0.6", git = "https://github.com/Protryon/etcd-rs" }
+uuid = { version = "0.8", features = ["v4", "serde"] }
+serde = "1.0"
+serde_json = "1.0"
+chashmap = "2.2"
+arc-swap = "0.4"
+futures = "0.3"
+base64 = "0.13"
+actix-rt = "2.2.0"
+actix-web = { version = "=4.0.0-beta.8", features = ["rustls"] }
+actix-service = "2.0.0"
+regex = "1.4"
+spire-workload = "1.1.1"
+sha2 = "0.9"
+hex = "0.4"
+notify = "4.0"
+crc = "1.8"
+jemallocator = "0.3"
+anyhow = "1.0"
+serde_yaml = "0.8"
+hyper = "0.14"
+zeroize = { version = "1.3", features = ["zeroize_derive"] }
+
+[build-dependencies]
+tonic-build = "0.5"
+prost-build = "0.8"
+
+[lib]
+name = "keyhouse"
+path = "src/lib.rs"
+
+[profile.release]
+lto = true

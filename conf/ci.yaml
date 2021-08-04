@@ -1,0 +1,21 @@
+server_identity: spiffe://bytem-test/id:server
+server_bundle_path: ./certs/server/
+internal_server_identity: spiffe://bytem-test/id:server_internal
+internal_server_bundle_path: ./certs/server_internal/
+etcd_identity: spiffe://bytem-test/id:etcd
+etcd_addresses:
+    - http://bitnami-etcd:2379
+etcd_min_refresh_rate_ms: 100
+etcd_max_refresh_rate_ms: 60000
+server_address: 0.0.0.0
+server_port: 50051
+control_plane_ip: 0.0.0.0:8443
+health_check_ip: 0.0.0.0:8444
+region: localhost:50051
+read_only: false
+enable_control_plane_tls: false
+secret_limit: 1024
+customer_key_limit: 256
+acl_limit: 1024
+master_key_id: test
+allow_proxy_header: true
