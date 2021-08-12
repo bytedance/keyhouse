@@ -62,7 +62,7 @@ async fn init_test_server(store: OwnedStore<()>, addr: String) {
     .await
     {
         error!("error starting server: {:?}", e);
-        sleep(StdDuration::from_millis(100)).await;
+        sleep(StdDuration::from_millis(3000)).await;
         std::process::exit(1); // TODO: find a way to panic in a thread and fail test (probably can be done with channels)
     }
 }
@@ -78,7 +78,7 @@ async fn start_test_server(store: OwnedStore<()>) -> Region {
     let addr = format!("{}:{}", &config.0.server_address, port);
     let client_addr = format!("localhost:{}", port);
     tokio::spawn(init_test_server(store, addr.clone()));
-    sleep(StdDuration::from_millis(100)).await; // TODO: if this doesn't resolve the race well enough for tests, switch to channels
+    sleep(StdDuration::from_millis(3000)).await; // TODO: if this doesn't resolve the race well enough for tests, switch to channels
     Region(client_addr.into_bytes())
 }
 

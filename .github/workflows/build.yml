@@ -1,0 +1,78 @@
+name: build action
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+  schedule: [cron: "40 1 * * *"]
+
+jobs:
+  build-keyhouse:
+    strategy:
+      matrix:
+        runs-on:
+          - ubuntu-latest
+        image:
+          - "ubuntu:latest"
+          - "ubuntu:20.04"
+          - "ubuntu:18.04"
+        build-command:
+          - "cargo build"
+        test-command:
+          - "cargo test"
+        cargo-argument:
+          - ""
+          - "--release"
+        rust-toolchain:
+          - "stable"
+    runs-on: ${{ matrix.runs-on }}
+    container: 
+      image: ${{ matrix.image }}
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: 'true'
+    - name: Environment setup
+      run: |
+        cd $HOME && \
+        apt update && DEBIAN_FRONTEND=noninteractive apt install -y curl build-essential openssl libssl-dev pkg-config etcd && \
+        curl 'https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init' --output ./rustup-init && \
+        chmod +x ./rustup-init && \
+        echo '1' | ./rustup-init --default-toolchain ${{ matrix.rust-toolchain }} && \
+        $HOME/.cargo/bin/rustup component add clippy rustfmt && \
+        . ~/.cargo/env && 
+        cargo install cargo-audit &&
+        rustc --version &&
+        rustup --version &&
+        cargo --version
+      shell: bash
+    - name: cargo audit
+      run: |
+        . ~/.cargo/env && 
+        cd $GITHUB_WORKSPACE &&
+        cargo audit
+      shell: bash
+    - name: cargo clippy
+      run: |
+        . ~/.cargo/env && 
+        cd $GITHUB_WORKSPACE &&
+        cargo clippy
+      shell: bash
+    - name: Run build
+      run: |
+        . ~/.cargo/env && 
+        cd $GITHUB_WORKSPACE &&
+        ${{ matrix.build-command }} ${{ matrix.cargo-argument}}
+      shell: bash
+    - name: Run test
+      env:
+        KH_CONF: conf/ci.yaml
+        ALLOW_NONE_AUTHENTICATION: yes
+      run: |
+        etcd & \
+        echo "127.0.0.1 localtest.me" >> /etc/hosts && \
+        . ~/.cargo/env &&  \
+        cd $GITHUB_WORKSPACE && \
+        sleep 15 && ${{ matrix.test-command }} ${{ matrix.cargo-argument}}
+      shell: bash
