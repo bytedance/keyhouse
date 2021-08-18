@@ -4,7 +4,7 @@ internal_server_identity: spiffe://bytem-test/id:server_internal
 internal_server_bundle_path: ./certs/server_internal/
 etcd_identity: spiffe://bytem-test/id:etcd
 etcd_addresses:
-    - http://bitnami-etcd:2379
+    - http://localhost:2379
 etcd_min_refresh_rate_ms: 100
 etcd_max_refresh_rate_ms: 60000
 server_address: 0.0.0.0
