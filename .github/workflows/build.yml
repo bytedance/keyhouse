@@ -74,5 +74,5 @@ jobs:
         echo "127.0.0.1 localtest.me" >> /etc/hosts && \
         . ~/.cargo/env &&  \
         cd $GITHUB_WORKSPACE && \
-        sleep 15 && ${{ matrix.test-command }} ${{ matrix.cargo-argument}}
+        sleep 5 && ${{ matrix.test-command }} ${{ matrix.cargo-argument}} -- --test-threads=1
       shell: bash
