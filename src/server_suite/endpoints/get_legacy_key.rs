@@ -38,12 +38,16 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
         let spiffe_id_value = spiffe_id.as_ref().map(|x| x.to_string());
         let (token_spiffe_id, token_value) =
             KeyhouseService::<T>::extract_alt_token(&raw_request.get_ref().token);
-        let total_spiffe_id = spiffe_id.as_ref().or_else(|| token_spiffe_id.as_ref());
-        let (auth_service, auth_user) = Self::get_auth_user_service(total_spiffe_id);
+        let total_spiffe_id = T::IdentityCombiner::spiffe_id_combiner(
+            spiffe_id,
+            token_spiffe_id,
+            raw_request.get_ref().prefer_channel_identity,
+        );
+        let (auth_service, auth_user) = Self::get_auth_user_service(total_spiffe_id.as_ref());
 
         let request = raw_request.into_inner();
         let key_alias = Some(request.alias.clone());
-        let result = self.get_legacy_key(total_spiffe_id, request).await;
+        let result = self.get_legacy_key(total_spiffe_id.as_ref(), request).await;
 
         let error_code = match &result {
             Ok(Ok(_)) => ErrorCode::Ok,
@@ -76,7 +80,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
             });
         Ok(KeyhouseResponse {
             response,
-            spiffe_id: total_spiffe_id.cloned(),
+            spiffe_id: total_spiffe_id,
             error_code,
             target_alias: key_alias,
         })

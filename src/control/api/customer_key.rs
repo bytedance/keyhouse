@@ -173,8 +173,38 @@ async fn _create_customer_key<T: KeyhouseImpl + 'static>(
         ));
     };
 
+    let mut new_keyid = rand::random();
+    let mut retry_times = 0;
+
+    loop {
+        if retry_times > 10 {
+            sentry_error!(
+                "error in create_customer_key: retried 10 times but can't generate a key"
+            );
+            return Err(PlatformResponse::error(
+                "internal error: key generation error. Please try again.",
+            ));
+        }
+
+        let query = data.store.get_customer_key_by_id(new_keyid).await;
+
+        if query.is_err() {
+            warn!("cannot check if new_keyid is good. retrying ...");
+            retry_times += 1;
+            continue;
+        }
+
+        if let Ok(Some(_found)) = query {
+            warn!("duplicated keyid generated! doing rerand ...");
+            new_keyid = rand::random();
+            retry_times += 1;
+        } else {
+            break;
+        }
+    }
+
     let key = CustomerKey {
-        id: rand::random(),
+        id: new_keyid,
         alias: real_alias.clone(),
         created_at: util::epoch(),
         updated_at: util::epoch(),
