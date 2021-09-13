@@ -21,12 +21,14 @@ service Kms {
 message EncodeDataKeyRequest {
   string token = 1;
   string alias = 2; // Key Alias is a semantic reference to a unique key. It consists of a 8 or more ASCII characters limited to alphanum and (_)  and (-) characters followed by the version, prefixed with the KeyRing ID that key belongs to. Key Alias is an optional field and is defaulted to Key ID.
+  bool prefer_channel_identity = 3;
 }
 
 // The request message for decoding services
 message DecodeDataKeyRequest {
   string token = 1;
   bytes encoded_key = 2; // encoded key with metadata
+  bool prefer_channel_identity = 3;
 }
 
 // The response message for encoding services
@@ -46,6 +48,7 @@ message DecodeDataKeyResponse {
 message PingPongRequest {
   string token = 1;
   bytes timestamp = 2; // unix ms epoch for creation time
+  bool prefer_channel_identity = 3;
 }
 
 // The response message for Ping Pong service
@@ -59,6 +62,7 @@ message SignRequest {
   string token = 1;
   string alias = 2; // Key Alias is a semantic reference to a unique key. It consists of a 8 or more ASCII characters limited to alphanum and (_)  and (-) characters followed by the version, prefixed with the KeyRing ID that key belongs to. Key Alias is an optional field and is defaulted to Key ID.
   bytes orig_hash = 3; // SHA512 hash of they key id that has given alias
+  bool prefer_channel_identity = 4;
 }
 
 // The response message for Sign and Verify services
@@ -71,6 +75,7 @@ message VerifyResponse {
 message GetSecretRequest {
   string token = 1;
   string alias = 2; // Key Alias is a semantic reference to a unique secret. It consists of a 8 or more ASCII characters limited to alphanum and (_) and (-) characters, prefixed with the KeyRing Alias and Customer Key Alias that key belongs to.
+  bool prefer_channel_identity = 3;
 }
 
 // The response message for GetSecret
@@ -83,6 +88,7 @@ message GetSecretResponse {
 message GetSecretsRequest {
   string token = 1;
   string alias = 2; // Key Alias is a semantic reference to a unique customer key. It consists of a 8 or more ASCII characters limited to alphanum and (_) and (-) characters, prefixed with the KeyRing Alias that key belongs to.
+  bool prefer_channel_identity = 3;
 }
 
 // The response message for GetSecrets
@@ -96,6 +102,7 @@ message StoreSecretRequest {
   string token = 1;
   string alias = 2; // Key Alias is a semantic reference to a unique secret. It consists of a 8 or more ASCII characters limited to alphanum and (_) and (-) characters, prefixed with the KeyRing Alias and Customer Key Alias that key belongs to.
   string secret = 3;
+  bool prefer_channel_identity = 4;
 }
 
 // The response message for StoreSecret
@@ -107,6 +114,7 @@ message StoreSecretResponse {
 message GetLegacyKeyRequest {
   string token = 1;
   string alias = 2; // Key Alias is a semantic reference to a unique key. It consists of a 8 or more ASCII characters limited to alphanum and (_)  and (-) characters followed by the version, prefixed with the KeyRing ID that key belongs to. Key Alias is an optional field and is defaulted to Key ID.
+  bool prefer_channel_identity = 3;
 }
 
 // The response message for encoding services

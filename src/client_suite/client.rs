@@ -91,6 +91,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseClient<T> {
         let request = tonic::Request::new(keyhouse::EncodeDataKeyRequest {
             token: self.token.clone(),
             alias,
+            prefer_channel_identity: false,
         });
         let response = self
             .primary
@@ -113,6 +114,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseClient<T> {
         let request = tonic::Request::new(keyhouse::DecodeDataKeyRequest {
             token: self.token.clone(),
             encoded_key: key,
+            prefer_channel_identity: false,
         });
         let response = self
             .resolve_sub(region)
@@ -132,6 +134,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseClient<T> {
         let request = tonic::Request::new(keyhouse::PingPongRequest {
             token: self.token.clone(),
             timestamp: timestamp.to_le_bytes().to_vec(),
+            prefer_channel_identity: false,
         });
         let response = self.primary.client.ping_pong(request).await?;
         let error_code = response.get_ref().error_code;
@@ -153,6 +156,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseClient<T> {
         let request = tonic::Request::new(keyhouse::GetSecretRequest {
             token: self.token.clone(),
             alias,
+            prefer_channel_identity: false,
         });
         let response = self.primary.client.get_secret(request).await?.into_inner();
         let error_code = ErrorCode::from_primitive(response.error_code as usize);
@@ -167,6 +171,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseClient<T> {
         let request = tonic::Request::new(keyhouse::GetSecretsRequest {
             token: self.token.clone(),
             alias,
+            prefer_channel_identity: false,
         });
         let response = self.primary.client.get_secrets(request).await?.into_inner();
         let error_code = ErrorCode::from_primitive(response.error_code as usize);
@@ -182,6 +187,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseClient<T> {
             token: self.token.clone(),
             alias,
             secret: secret.into(),
+            prefer_channel_identity: false,
         });
         let response = self
             .primary
@@ -201,6 +207,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseClient<T> {
         let request = tonic::Request::new(keyhouse::GetLegacyKeyRequest {
             token: self.token.clone(),
             alias,
+            prefer_channel_identity: false,
         });
         let response = self
             .primary

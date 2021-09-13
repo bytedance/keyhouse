@@ -22,6 +22,7 @@ pub trait KeyhouseImpl: Send + Sync + Clone + std::fmt::Debug {
     type AlternateDataAuthToken: AlternateDataAuthToken + 'static;
     type AlternateDataAuthProvider: AlternateDataAuthProvider<Self::AlternateDataAuthToken>
         + 'static;
+    type IdentityCombiner: IdentityCombiner + 'static;
     type KeyhouseExt: KeyhouseExt + 'static;
 }
 
@@ -33,6 +34,7 @@ impl KeyhouseImpl for () {
     type ControlPlaneAuth = crate::control::MockAuth;
     type AlternateDataAuthToken = ();
     type AlternateDataAuthProvider = ();
+    type IdentityCombiner = ();
     type KeyhouseExt = ();
 }
 
@@ -199,5 +201,27 @@ impl AlternateDataAuthToken for () {
 
     fn is_service(&self) -> bool {
         true
+    }
+}
+
+pub trait IdentityCombiner: Send + Sync {
+    fn spiffe_id_combiner(
+        channel_spiffe_id: Option<SpiffeID>,
+        peer_spiffe_id: Option<SpiffeID>,
+        prefer_channel_identity: bool,
+    ) -> Option<SpiffeID>;
+}
+
+impl IdentityCombiner for () {
+    fn spiffe_id_combiner(
+        channel_spiffe_id: Option<SpiffeID>,
+        peer_spiffe_id: Option<SpiffeID>,
+        prefer_channel_identity: bool,
+    ) -> Option<SpiffeID> {
+        if prefer_channel_identity {
+            channel_spiffe_id.or(peer_spiffe_id)
+        } else {
+            peer_spiffe_id.or(channel_spiffe_id)
+        }
     }
 }

@@ -46,8 +46,12 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
         let spiffe_id_value = spiffe_id.as_ref().map(|x| x.to_string());
         let (token_spiffe_id, token_value) =
             KeyhouseService::<T>::extract_alt_token(&raw_request.get_ref().token);
-        let total_spiffe_id = spiffe_id.as_ref().or_else(|| token_spiffe_id.as_ref());
-        let (auth_service, auth_user) = Self::get_auth_user_service(total_spiffe_id);
+        let total_spiffe_id = T::IdentityCombiner::spiffe_id_combiner(
+            spiffe_id,
+            token_spiffe_id,
+            raw_request.get_ref().prefer_channel_identity,
+        );
+        let (auth_service, auth_user) = Self::get_auth_user_service(total_spiffe_id.as_ref());
 
         let request = raw_request.into_inner();
         let mut hasher = sha2::Sha256::new();
@@ -56,7 +60,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
 
         let mut key_id = None::<u32>;
         let result = self
-            .decode_data_key(total_spiffe_id, request, &mut key_id)
+            .decode_data_key(total_spiffe_id.as_ref(), request, &mut key_id)
             .await;
 
         let error_code = match &result {
@@ -90,7 +94,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
             });
         Ok(KeyhouseResponse {
             response,
-            spiffe_id: total_spiffe_id.cloned(),
+            spiffe_id: total_spiffe_id,
             error_code,
             target_alias: None,
         })
