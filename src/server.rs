@@ -1,9 +1,13 @@
 use crate::server_suite::config::SERVER_CONFIG;
-use crate::server_suite::handler::KeyhouseService;
-use crate::server_suite::server::start_server;
 use crate::server_suite::store;
-use crate::{control, control::auth::ControlPlaneAuth, prelude::*, server_suite};
+use crate::{prelude::*, server_suite};
 use std::sync::Arc;
+
+#[cfg(feature = "spawn_controlplane")]
+use crate::{control, control::auth::ControlPlaneAuth};
+
+#[cfg(feature = "spawn_dataplane")]
+use crate::server_suite::{handler::KeyhouseService, server::start_server};
 
 pub fn entrypoint<T: KeyhouseImpl + 'static>() {
     let sentry_configuration = &SERVER_CONFIG.get().0.sentry;
@@ -35,16 +39,7 @@ pub async fn async_entrypoint<T: KeyhouseImpl + 'static>() {
 
     info!("spire workload initialized");
 
-    let tls_config = SERVER_CONFIG.get().1.server_tls_config();
-
-    let (ip, port) = {
-        let c = &SERVER_CONFIG.get().0;
-        (c.server_address.clone(), c.server_port)
-    };
-    let addr = format!("{}:{}", ip, port);
-
     info!("loading main store");
-
     let mem_store = {
         let config = &SERVER_CONFIG.get();
 
@@ -82,14 +77,34 @@ pub async fn async_entrypoint<T: KeyhouseImpl + 'static>() {
 
     info!("initialized intermediate key");
 
-    control::spawn_control(
-        store.clone(),
-        Arc::new(*T::ControlPlaneAuth::new().expect("failed to init control plane auth")),
-    );
+    #[cfg(feature = "spawn_controlplane")]
+    {
+        info!("feature spawn_controlplane enabled. spawning controlplane");
+        control::spawn_control(
+            store.clone(),
+            Arc::new(*T::ControlPlaneAuth::new().expect("failed to init control plane auth")),
+        );
 
-    info!("control spawned");
+        info!("controlplane spawned");
+    }
 
-    start_server(&addr, tls_config, KeyhouseService::new(store))
-        .await
-        .unwrap();
+    #[cfg(not(feature = "spawn_controlplane"))]
+    info!("feature spawn_controlplane disabled. skipped controlplane");
+
+    #[cfg(feature = "spawn_dataplane")]
+    {
+        let tls_config = SERVER_CONFIG.get().1.server_tls_config();
+        let (ip, port) = {
+            let c = &SERVER_CONFIG.get().0;
+            (c.server_address.clone(), c.server_port)
+        };
+        let addr = format!("{}:{}", ip, port);
+        info!("feature spawn_dataplane enabled. spawning dataplane");
+        start_server(&addr, tls_config, KeyhouseService::new(store))
+            .await
+            .unwrap();
+    }
+
+    #[cfg(not(feature = "spawn_dataplane"))]
+    info!("feature spawn_dataplane disabled. skipped dataplane");
 }
