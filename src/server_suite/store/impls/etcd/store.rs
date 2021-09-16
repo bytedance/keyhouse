@@ -1,4 +1,5 @@
 use super::*;
+use crate::SERVER_CONFIG;
 use crate::{util::time::epoch_us, Metric};
 use std::future::Future;
 use std::sync::atomic::Ordering;
@@ -11,14 +12,30 @@ pub(super) async fn etcd_wrap<
     method: &'static str,
     fut: F,
 ) -> Result<T> {
+    // etcd operation timeout default to 60 seconds = 60000 millis
+    let timeout_ms = SERVER_CONFIG.get().0.etcd_operation_timeout_ms;
+    let timeout_duration = std::time::Duration::from_millis(timeout_ms);
+
     let start = epoch_us();
-    let result = fut.await;
+    let result = tokio::time::timeout(timeout_duration, fut).await;
     let stop = epoch_us();
+
     E::KeyhouseExt::emit_metric(Metric::EtcdOperation {
         latency: (stop - start) as f64 / 1000.0,
         success: result.is_ok(),
         method,
     });
+
+    let result = match result {
+        Err(e) => {
+            // Etcd operation time out
+            let err_info = anyhow!("etcd operation timeout. timeout_ms = {}, {}", timeout_ms, e);
+            sentry_error!("{}", err_info);
+            return Err(err_info);
+        }
+        Ok(r) => r, // the inner fut result for Etcd
+    };
+
     if result.is_ok() {
         crate::control::ETCD_LAST_CONTACT.store(crate::util::epoch(), Ordering::Relaxed);
     }
