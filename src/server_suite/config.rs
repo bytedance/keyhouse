@@ -28,6 +28,8 @@ pub struct RawConfig {
     pub etcd_max_refresh_rate_ms: u64,
     pub etcd_min_refresh_rate_ms: u64,
     pub etcd_prefix: Option<String>,
+    #[serde(default = "make_default_u64::<60000>")]
+    pub etcd_operation_timeout_ms: u64,
     pub sentry: Option<Url>,
     pub server_address: String,
     pub server_port: u16,

@@ -6,10 +6,10 @@ pub fn epoch() -> u64 {
     duration.as_millis() as u64
 }
 
-pub fn epoch_us() -> u64 {
+pub fn epoch_us() -> u128 {
     let start = SystemTime::now();
     let duration = start.duration_since(UNIX_EPOCH).unwrap();
-    duration.as_micros() as u64
+    duration.as_micros()
 }
 
 pub fn epoch_minutes() -> u32 {
