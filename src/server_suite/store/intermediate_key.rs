@@ -129,17 +129,22 @@ lazy_static! {
 
 impl IntermediateKey {
     pub(crate) async fn decode<T: KeyhouseImpl + 'static>(&mut self) -> Result<()> {
+        debug!("decoding intermediate key. loading from INTERMEDIATE_KEY_CACHE");
         let cache = INTERMEDIATE_KEY_CACHE.load();
+        debug!("INTERMEDIATE_KEY_CACHE loaded. Trying cache");
         if let Some(cached) = cache.get(&self.id) {
             self.decoded = Some(cached.clone());
+            debug!("cache hit. return cached.");
             return Ok(());
         }
-        let decoded = Arc::new(IntermediateKeyDecoded(
-            T::MasterKeyProvider::decode(&self.master_key_id, self.item.clone()).await?,
-        ));
+        debug!("cache miss. decoding with masterkeyprovider");
+        let decoded =
+            Arc::new(T::MasterKeyProvider::decode(&self.master_key_id, self.item.clone()).await?);
+        debug!("masterkeyprovider decode completed");
         let mut new_cache = (**cache).clone();
         new_cache.insert(self.id, decoded.clone());
         INTERMEDIATE_KEY_CACHE.swap(Arc::new(new_cache));
+        debug!("INTERMEDIATE_KEY_CACHE updated");
         self.decoded = Some(decoded);
         Ok(())
     }

@@ -48,6 +48,8 @@ pub async fn async_entrypoint<T: KeyhouseImpl + 'static>() {
     let mem_store = {
         let config = &SERVER_CONFIG.get();
 
+        debug!("connecting to etcd");
+
         let etcd_store = store::EtcdStore::<T>::new(
             config.1.etcd_prefix.clone(),
             config.0.etcd_addresses.clone(),
@@ -62,6 +64,8 @@ pub async fn async_entrypoint<T: KeyhouseImpl + 'static>() {
         )
         .await
         .expect("failed to connect to etcd");
+
+        debug!("etcd connected. creating memstore");
 
         store::MemStore::new(
             Arc::new(etcd_store),

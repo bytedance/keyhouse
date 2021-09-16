@@ -356,17 +356,22 @@ impl<T: KeyhouseImpl + 'static> Store<T> for EtcdStore<T> {
     }
 
     async fn get_intermediate_key(&self) -> Result<Option<IntermediateKey>> {
+        debug!("enter get_intermediate_key. constructing rangerequest.");
         let request = RangeRequest::new(KeyRange::key(format!("{}intermediate_key", self.prefix)));
+        debug!("rangerequest prepared. waiting for response ...");
         let mut response =
             etcd_wrap::<T, _, _>("get_intermediate_key", self.client.kv().range(request)).await?;
+        debug!("response received. parsing ...");
         let all_keys = response.take_kvs();
         assert!(all_keys.len() < 2);
         let raw_key = all_keys.first().map(|kv| kv.value_str());
         let mut key: Option<IntermediateKey> =
             raw_key.map(|key| serde_json::from_str(key)).transpose()?;
+        debug!("parse complete! trying to decode intermediate_key");
         if let Some(key) = &mut key {
             key.decode::<T>().await?;
         }
+        debug!("decode complete!");
         Ok(key)
     }
 
