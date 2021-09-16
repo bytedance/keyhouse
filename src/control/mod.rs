@@ -37,7 +37,7 @@ async fn index(_req: HttpRequest) -> impl Responder {
 pub struct PlatformResponse<T: Serialize> {
     // 0 = ok, 1 = generic error (see msg), 2 = unauthenticated, 3 = unauthorized
     pub error_code: i32,
-    pub msg: Option<String>,
+    pub message: Option<String>,
     pub apply_url: Option<String>,
     pub data: Option<T>,
 }
@@ -46,7 +46,7 @@ impl<T: Serialize> PlatformResponse<T> {
     pub fn ok(data: T) -> Json<PlatformResponse<T>> {
         Json(PlatformResponse {
             error_code: 0,
-            msg: None,
+            message: None,
             apply_url: None,
             data: Some(data),
         })
@@ -55,7 +55,7 @@ impl<T: Serialize> PlatformResponse<T> {
     pub fn error(msg: impl Into<String>) -> Json<PlatformResponse<T>> {
         Json(PlatformResponse {
             error_code: 1,
-            msg: Some(msg.into()),
+            message: Some(msg.into()),
             apply_url: None,
             data: None,
         })
@@ -68,7 +68,7 @@ impl<T: Serialize> PlatformResponse<T> {
     ) -> Json<PlatformResponse<T>> {
         Json(PlatformResponse {
             error_code,
-            msg: Some(msg.into()),
+            message: Some(msg.into()),
             apply_url,
             data: None,
         })

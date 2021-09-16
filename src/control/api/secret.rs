@@ -374,7 +374,7 @@ mod tests {
 
             assert_eq!(resp.error_code, 1);
             assert_eq!(
-                resp.msg.unwrap(),
+                resp.message.unwrap(),
                 "secret cannot be larger than 16 kb (UTF-8)"
             );
             assert!(resp.data.is_none());
