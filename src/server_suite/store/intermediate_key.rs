@@ -138,8 +138,9 @@ impl IntermediateKey {
             return Ok(());
         }
         debug!("cache miss. decoding with masterkeyprovider");
-        let decoded =
-            Arc::new(T::MasterKeyProvider::decode(&self.master_key_id, self.item.clone()).await?);
+        let decoded = Arc::new(IntermediateKeyDecoded(
+            T::MasterKeyProvider::decode(&self.master_key_id, self.item.clone()).await?,
+        ));
         debug!("masterkeyprovider decode completed");
         let mut new_cache = (**cache).clone();
         new_cache.insert(self.id, decoded.clone());
