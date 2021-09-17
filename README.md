@@ -103,7 +103,7 @@ cargo test
 
 ## Authors
 
-- [Lingxiang Wang](https://github.com/w93163red)
+- [Lingxiang "LinG" Wang](https://github.com/w93163red)
 - [Maxwell Bruce](https://github.com/Protryon)
 - [Ruide Zhang](https://github.com/Ruide)
 - [Sergey Shekyan](https://github.com/shekyan)

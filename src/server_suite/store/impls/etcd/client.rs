@@ -8,6 +8,7 @@ impl<T: KeyhouseImpl + 'static> EtcdStore<T> {
         tls_auth: rustls::ClientConfig,
         auth: Option<(String, String)>,
     ) -> Result<EtcdStore<T>> {
+        debug!("constructing etcd client");
         let endpoints_str: Vec<String> = endpoints.iter().map(|x| x.to_string()).collect();
         let tls_enabled = !endpoints_str.is_empty() && endpoints_str[0].starts_with("https://");
         let client_config = ClientConfig {
@@ -20,9 +21,12 @@ impl<T: KeyhouseImpl + 'static> EtcdStore<T> {
             },
         };
         let client: Client;
+        debug!("etcd client constructed. connecting ...");
         loop {
+            debug!("connecting to {:?}", endpoints);
             match Client::connect(client_config.clone()).await {
                 Ok(new_client) => {
+                    debug!("conneced!");
                     client = new_client;
                     break;
                 }
@@ -32,6 +36,7 @@ impl<T: KeyhouseImpl + 'static> EtcdStore<T> {
                 }
             }
         }
+        debug!("loop exited");
 
         Ok(EtcdStore {
             client,
