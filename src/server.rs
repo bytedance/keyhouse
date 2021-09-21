@@ -81,15 +81,28 @@ pub async fn async_entrypoint<T: KeyhouseImpl + 'static>() {
 
     info!("initialized intermediate key");
 
-    #[cfg(feature = "spawn_controlplane")]
+    #[cfg(all(feature = "spawn_controlplane", feature = "spawn_dataplane"))]
     {
-        info!("feature spawn_controlplane enabled. spawning controlplane");
+        info!(
+            "feature spawn_controlplane and spawn_dataplane enabled. spawning controlplane tasks"
+        );
+        // create a new tokio task
         control::spawn_control(
             store.clone(),
             Arc::new(*T::ControlPlaneAuth::new().expect("failed to init control plane auth")),
         );
 
         info!("controlplane spawned");
+    }
+
+    #[cfg(all(feature = "spawn_controlplane", not(feature = "spawn_dataplane")))]
+    {
+        info!("only spawn_controlplane enabled.");
+        // this runs endlessly until error
+        control::actix_main(
+            store.clone(),
+            Arc::new(*T::ControlPlaneAuth::new().expect("failed to init control plane auth")),
+        )
     }
 
     #[cfg(not(feature = "spawn_controlplane"))]
