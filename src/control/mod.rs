@@ -122,7 +122,7 @@ lazy_static! {
 }
 
 #[actix_web::main]
-async fn actix_main<T: KeyhouseImpl + 'static>(store: OwnedStore<T>, auth: OwnedAuth<T>) {
+pub async fn actix_main<T: KeyhouseImpl + 'static>(store: OwnedStore<T>, auth: OwnedAuth<T>) {
     let config = &SERVER_CONFIG.get().0;
 
     if let Some(health_check_ip) = config.health_check_ip.as_ref() {
