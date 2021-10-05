@@ -99,10 +99,13 @@ pub async fn async_entrypoint<T: KeyhouseImpl + 'static>() {
     {
         info!("only spawn_controlplane enabled.");
         // this runs endlessly until error
-        control::actix_main(
-            store.clone(),
-            Arc::new(*T::ControlPlaneAuth::new().expect("failed to init control plane auth")),
-        )
+        let join_handle = std::thread::spawn(move || {
+            control::actix_main(
+                store.clone(),
+                Arc::new(*T::ControlPlaneAuth::new().expect("failed to init control plane auth")),
+            )
+        });
+        join_handle.join().expect("Control plane failed!");
     }
 
     #[cfg(not(feature = "spawn_controlplane"))]
