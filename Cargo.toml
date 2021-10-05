@@ -61,3 +61,6 @@ lto = true
 default = ["spawn_controlplane", "spawn_dataplane"]
 spawn_controlplane = []
 spawn_dataplane = []
+
+[dev-dependencies]
+ring = { version = "0.16", features = ["std"] }
