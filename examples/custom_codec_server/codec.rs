@@ -6,7 +6,6 @@ use ring::aead::{Nonce, NonceSequence};
 use ring::error::Unspecified;
 use ring::hkdf;
 use ring::rand::{SecureRandom, SystemRandom};
-use std::convert::TryFrom;
 
 const KEYSIZE: usize = 32;
 
@@ -19,27 +18,26 @@ pub struct AES256GCMCodecItem {
     counter: u64,
 }
 
-pub struct KeyHouseNonceSequence(Result<aead::Nonce, Unspecified>, Vec<u8>);
+pub struct KeyHouseNonceSequence(Option<aead::Nonce>, Vec<u8>);
 
 impl KeyHouseNonceSequence {
     fn gen_nonce() -> Self {
         let rng = SystemRandom::new();
         let mut randombytes: [u8; aead::NONCE_LEN] = [0; aead::NONCE_LEN];
-        let _ = rng
-            .fill(&mut randombytes)
-            .map_err(|e| Self(Err(e), randombytes.to_vec()));
+        let _ = rng.fill(&mut randombytes).ok();
+
         let raw_nonce = &randombytes[..];
         Self(
-            aead::Nonce::try_assume_unique_for_key(raw_nonce),
+            aead::Nonce::try_assume_unique_for_key(raw_nonce).ok(),
             raw_nonce.to_vec(),
         )
     }
 
     fn gen_nonce_from_iv(iv: &[u8]) -> Self {
         if iv.len() != aead::NONCE_LEN {
-            return Self(Err(Unspecified), iv.to_vec());
+            return Self(None, iv.to_vec());
         }
-        Self(aead::Nonce::try_assume_unique_for_key(iv), iv.to_vec())
+        Self(aead::Nonce::try_assume_unique_for_key(iv).ok(), iv.to_vec())
     }
 
     fn get_raw_bytes(&self) -> Vec<u8> {
@@ -53,7 +51,14 @@ impl KeyHouseNonceSequence {
 
 impl NonceSequence for KeyHouseNonceSequence {
     fn advance(&mut self) -> Result<Nonce, Unspecified> {
-        Ok(Nonce::assume_unique_for_key(<[u8; 12]>::try_from(self.get_raw_bytes().as_slice())?))
+        let nonce = self.0.take();
+        let mut keyhouse_seq = KeyHouseNonceSequence::gen_nonce();
+        self.0 = keyhouse_seq.0.take();
+        self.1 = keyhouse_seq.1.clone();
+        match nonce {
+            Some(nonce) => Ok(nonce),
+            None => Err(Unspecified),
+        }
     }
 }
 
