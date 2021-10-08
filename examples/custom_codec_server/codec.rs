@@ -6,6 +6,7 @@ use ring::aead::{Nonce, NonceSequence};
 use ring::error::Unspecified;
 use ring::hkdf;
 use ring::rand::{SecureRandom, SystemRandom};
+use std::convert::TryFrom;
 
 const KEYSIZE: usize = 32;
 
@@ -52,7 +53,7 @@ impl KeyHouseNonceSequence {
 
 impl NonceSequence for KeyHouseNonceSequence {
     fn advance(&mut self) -> Result<Nonce, Unspecified> {
-        KeyHouseNonceSequence::gen_nonce().0
+        Ok(Nonce::assume_unique_for_key(<[u8; 12]>::try_from(self.get_raw_bytes().as_slice())?))
     }
 }
 
