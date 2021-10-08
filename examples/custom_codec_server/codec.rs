@@ -246,6 +246,7 @@ mod tests {
         let mut ciphertext_copy = ciphertext.clone();
         println!("ciphertext:{}\n", hex::encode(&ciphertext));
         let dec_result = cc.decode_data_with_iv(ciphertext, &randombytes);
+        println!("{:?}", dec_result);
         assert!(dec_result.is_ok());
         let plaintext_dec = dec_result.unwrap();
         assert_eq!(plaintext_dec, plaintext);
