@@ -86,6 +86,14 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
         let spiffe_id_value = spiffe_id.as_ref().map(|x| x.to_string());
         let (token_spiffe_id, token_value) =
             KeyhouseService::<T>::extract_alt_token(&raw_request.get_ref().token);
+
+        if token_spiffe_id.is_none() && token_value.is_none() && !&raw_request.get_ref().token.is_empty() {
+            match spiffe_id_value.as_ref() {
+                Some(s) => warn!("invalid token but cert is ok. ip: {} spiffe_id: {}", ip, s),
+                None => warn!("invalid token and no valid cert either. ip: {}", ip),
+            }
+        }
+
         let total_spiffe_id = T::IdentityCombiner::spiffe_id_combiner(
             spiffe_id,
             token_spiffe_id,
