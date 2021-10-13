@@ -70,7 +70,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseClient<T> {
     }
 
     pub async fn encode_data(&mut self, alias: String, input: Vec<u8>) -> Result<Vec<u8>> {
-        let (coder, encoded_key) = self.encode_data_key(alias.clone()).await?;
+        let (coder, encoded_key) = self.encode_data_key(alias.clone(), Vec::default()).await?;
         encode_data(coder, encoded_key, self.primary.region.clone(), input)
     }
 
@@ -87,11 +87,12 @@ impl<T: KeyhouseImpl + 'static> KeyhouseClient<T> {
     }
 
     /// returns coder context, encoded key
-    async fn encode_data_key(&mut self, alias: String) -> Result<(T::ClientCoding, Vec<u8>)> {
+    pub async fn encode_data_key(&mut self, alias: String, custom_raw_key: Vec<u8>) -> Result<(T::ClientCoding, Vec<u8>)> {
         let request = tonic::Request::new(keyhouse::EncodeDataKeyRequest {
             token: self.token.clone(),
             alias,
             prefer_channel_identity: false,
+            custom_raw_key,
         });
         let response = self
             .primary
@@ -110,7 +111,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseClient<T> {
         ))
     }
 
-    async fn decode_data_key(&mut self, region: Region, key: Vec<u8>) -> Result<T::ClientCoding> {
+    pub async fn decode_data_key(&mut self, region: Region, key: Vec<u8>) -> Result<T::ClientCoding> {
         let request = tonic::Request::new(keyhouse::DecodeDataKeyRequest {
             token: self.token.clone(),
             encoded_key: key,
