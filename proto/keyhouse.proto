@@ -22,6 +22,7 @@ message EncodeDataKeyRequest {
   string token = 1;
   string alias = 2; // Key Alias is a semantic reference to a unique key. It consists of a 8 or more ASCII characters limited to alphanum and (_)  and (-) characters followed by the version, prefixed with the KeyRing ID that key belongs to. Key Alias is an optional field and is defaulted to Key ID.
   bool prefer_channel_identity = 3;
+  bytes custom_raw_key = 4;
 }
 
 // The request message for decoding services

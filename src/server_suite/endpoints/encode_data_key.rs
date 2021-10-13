@@ -23,11 +23,19 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
             Err(code) => return Ok(Err(code)),
         }
 
-        let client_coding_raw = key.generate_data_key::<T>()?;
-
-        let key_out = key
-            .decode_key::<T>(None)?
-            .encode_data(client_coding_raw.into_source())?;
+        // check if the sdk send the custom datakey
+        let raw_key: Vec<u8>;
+        let custom_raw_key: Vec<u8> = request.custom_raw_key;
+        let key_out = if custom_raw_key.is_empty() {
+            let client_coding_raw = key.generate_data_key::<T>()?;
+            raw_key = client_coding_raw.into_source();
+            key.decode_key::<T>(None)?.encode_data(client_coding_raw.into_source())?
+        } else if custom_raw_key.len() > 512 {
+            return Ok(Err(ErrorCode::BadPayload));
+        } else {
+            raw_key = custom_raw_key;
+            key.decode_key::<T>(None)?.encode_data(raw_key.to_owned())?
+        };
 
         let sensitives = key
             .sensitives
@@ -48,7 +56,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
         Ok(Ok(keyhouse::EncodeDataKeyResponse {
             error_code: ErrorCode::Ok as i32,
             encoded_key: formed_out,
-            decoded_key: client_coding_raw.into_source(),
+            decoded_key: raw_key,
         }))
     }
 
