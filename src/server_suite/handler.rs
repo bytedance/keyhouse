@@ -76,8 +76,11 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
     ) -> StdResult<Response<N>, Status> {
         let start = util::epoch_us();
         let ip = raw_request
-            .remote_addr()
-            .map(|x| x.to_string())
+            .extensions()
+            .get::<TlsConnectInfo<<WrappedStream as Connected>::ConnectInfo>>()
+            .map(|x| x.get_ref())
+            .map(|osa| osa.map(|sa| sa.to_string()))
+            .flatten()
             .unwrap_or_default();
         let spiffe_id = self.get_spiffe_id(&raw_request).await.ok();
 

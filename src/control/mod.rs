@@ -5,10 +5,11 @@ use crate::Metric;
 use actix_service::Service;
 use actix_web::{
     dev::{Body, Response, ServiceRequest, ServiceResponse},
+    error::Error,
     http::Method,
     web,
     web::Json,
-    App, Error, HttpMessage, HttpRequest, HttpResponse, HttpServer, Responder,
+    App, HttpMessage, HttpRequest, HttpResponse, HttpServer, Responder,
 };
 use futures::{
     future::{self, Either},
@@ -92,10 +93,7 @@ pub type ActixFuture = Pin<Box<dyn Future<Output = StdResult<ServiceResponse, Er
 pub type ActixFutureLeft =
     future::Either<ActixFuture, future::Ready<StdResult<ServiceResponse, Error>>>;
 
-pub fn early_response<R: Into<Response<Body>>>(
-    req: ServiceRequest,
-    response: R,
-) -> ActixFuture {
+pub fn early_response<R: Into<Response<Body>>>(req: ServiceRequest, response: R) -> ActixFuture {
     Box::pin(future::ok(req.into_response(response)))
 }
 
