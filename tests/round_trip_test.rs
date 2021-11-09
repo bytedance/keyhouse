@@ -6,6 +6,7 @@ use keyhouse::KeyhouseClient;
 use keyhouse::Region;
 use keyhouse::{server_suite::config::LoadedTlsBundle, start_server, SERVER_CONFIG};
 
+use keyhouse::baseclient::ClientCoding;
 use keyhouse::server_suite;
 use keyhouse::store::*;
 use keyhouse::KeyhouseService;
@@ -17,7 +18,6 @@ use std::time::Duration as StdDuration;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::time::sleep;
 use url::Url;
-use keyhouse::baseclient::ClientCoding;
 
 static FIRST_PORT: u16 = 51001;
 static NEXT_TEST_PORT: AtomicU16 = AtomicU16::new(FIRST_PORT);
@@ -263,6 +263,7 @@ async fn test_branch_round_trip() -> Result<()> {
 
     Ok(())
 }
+
 #[tokio::test]
 async fn test_unauthorized_encode_decode() -> Result<()> {
     let addr = start_test_server(
@@ -553,18 +554,28 @@ async fn test_custom_key_encoding_decoding() -> Result<()> {
                 None,
                 None,
             )
-                .await,
-        ])
             .await,
+        ])
+        .await,
     )
-        .await;
+    .await;
 
     let mut client = KeyhouseClient::<()>::connect(addr.clone(), make_client_config()).await?;
     // test custom key encoding
-    let (_, encoder_key) = client.encode_data_key("test/test".to_string(), Vec::default()).await?;
-    let decoded_key = client.decode_data_key(addr.clone(), encoder_key).await?.into_source();
-    let (_, encoder_key_with_custom_key) = client.encode_data_key("test/test".to_string(), decoded_key.clone()).await?;
-    let decoded_key_with_custom_key = client.decode_data_key(addr.clone(), encoder_key_with_custom_key).await?.into_source();
+    let (_, encoder_key) = client
+        .encode_data_key("test/test".to_string(), Vec::default())
+        .await?;
+    let decoded_key = client
+        .decode_data_key(addr.clone(), encoder_key)
+        .await?
+        .into_source();
+    let (_, encoder_key_with_custom_key) = client
+        .encode_data_key("test/test".to_string(), decoded_key.clone())
+        .await?;
+    let decoded_key_with_custom_key = client
+        .decode_data_key(addr.clone(), encoder_key_with_custom_key)
+        .await?
+        .into_source();
     assert_eq!(decoded_key, decoded_key_with_custom_key);
 
     Ok(())
@@ -584,16 +595,24 @@ async fn test_custom_key_encoding_decoding_failure() {
                 None,
                 None,
             )
-                .await,
-        ])
             .await,
+        ])
+        .await,
     )
-        .await;
+    .await;
 
-    let mut client = KeyhouseClient::<()>::connect(addr.clone(), make_client_config()).await.unwrap();
+    let mut client = KeyhouseClient::<()>::connect(addr.clone(), make_client_config())
+        .await
+        .unwrap();
     // test custom key encoding with size larger than 512
     let decoded_key = vec![0; 513];
-    let (_, encoder_key_with_custom_key) = client.encode_data_key("test/test".to_string(), decoded_key.clone()).await.unwrap();
-    let _ = client.decode_data_key(addr.clone(), encoder_key_with_custom_key).await.unwrap().into_source();
-
+    let (_, encoder_key_with_custom_key) = client
+        .encode_data_key("test/test".to_string(), decoded_key.clone())
+        .await
+        .unwrap();
+    let _ = client
+        .decode_data_key(addr.clone(), encoder_key_with_custom_key)
+        .await
+        .unwrap()
+        .into_source();
 }

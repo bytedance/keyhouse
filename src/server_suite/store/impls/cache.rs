@@ -297,7 +297,9 @@ impl<T: KeyhouseImpl + 'static> MemStore<T> {
         // controls throttle for events into store
         let min_duration = Duration::from_millis(self.min_update_delay);
         // controls complete refresh of cache
-        let max_duration = Duration::from_millis(self.max_update_delay);
+        let max_duration = Duration::from_millis(
+            self.max_update_delay + rand::random::<u64>() % (self.max_update_delay / 10 + 1),
+        );
         let mut current_min_delay = Instant::now() + min_duration;
         let mut current_max_delay = Instant::now() + max_duration;
         loop {

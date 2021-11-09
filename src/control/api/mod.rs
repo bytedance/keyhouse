@@ -11,7 +11,27 @@ pub(super) async fn info(req: HttpRequest) -> impl Responder {
         let identity = req.extensions();
         identity.get::<Identity>().unwrap().clone()
     };
-    format!("hello {}", identity.username)
+    let hello_message = format!("hello {}", identity.username);
+    let pr = PlatformResponse::<()> {
+        error_code: 0,
+        message: Some(hello_message),
+        apply_url: None,
+        data: None,
+    };
+
+    // generate valid json first
+    // if failed, generate something similar to json but not guaranteed to be a valid json
+    // bad case: username contains json meta char
+    //  - Backspace
+    //  - Form feed
+    //  - Newline
+    //  - Carriage return
+    //  - Tab
+    //  - Double quote
+    //  - Backslash
+    serde_json::to_string(&pr).unwrap_or_else(
+        |_| format!("{{ \"error_code\": 0, \"message\": \"hello {}\", \"apply_url\": \"\", \"data\": null }}", identity.username)
+    )
 }
 
 lazy_static! {

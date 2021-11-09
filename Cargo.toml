@@ -17,11 +17,11 @@ tokio = { version = "1.0", features = ["full"] }
 log = "0.4"
 env_logger = "0.8"
 threadgroup = "0.1"
-rustls = { version = "0.19", features = ["dangerous_configuration"] }
+rustls = { version = "0.19.0", features = ["dangerous_configuration"] }
 webpki = "0.21"
 lazy_static = "1.4"
 rand = "0.8"
-sentry = "0.22"
+sentry = "0.23"
 url = "2.2"
 etcd-rs = { version = "0.6", git = "https://github.com/Protryon/etcd-rs" }
 uuid = { version = "0.8", features = ["v4", "serde"] }
@@ -31,11 +31,12 @@ chashmap = "2.2"
 arc-swap = "0.4"
 futures = "0.3"
 base64 = "0.13"
-actix-rt = "2.2.0"
+actix-rt = "2.3.0"
 actix-web = { version = "=4.0.0-beta.9", features = ["rustls"] }
 actix-service = "2.0.0"
+actix-tls = "=3.0.0-beta.5"
 regex = "1.4"
-spire-workload = "1.1.1"
+spire-workload = "1.1.3"
 sha2 = "0.9"
 hex = "0.4"
 notify = "4.0"
