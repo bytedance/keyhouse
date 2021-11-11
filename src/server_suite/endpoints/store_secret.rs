@@ -7,12 +7,16 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
         spiffe_id: Option<&SpiffeID>,
         request: keyhouse::StoreSecretRequest,
     ) -> Result<StdResult<keyhouse::StoreSecretResponse, ErrorCode>> {
+        info!("processing store_secret request. alias: {}", &request.alias);
         let (key_alias, _secret_alias) = split_last_alias(&request.alias);
 
         let key = match self.load_key_from_alias(key_alias).await? {
             Err(code) => return Ok(Err(code)),
             Ok(x) => x,
         };
+
+        info!("load_key_from_alias succeeded");
+
         if key.purpose != KeyPurpose::Secret {
             return Ok(Err(ErrorCode::Forbidden));
         }
@@ -24,15 +28,25 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
             Err(code) => return Ok(Err(code)),
         }
 
+        info!("authorize_acls and secret purpose check passed");
+
         const STORE_RETRY_COUNT: usize = 3;
         for i in 0..STORE_RETRY_COUNT {
+            info!("started trying {} th etcd update", i);
             self.store
                 .cache_invalidation(&CacheInvalidation::Secret {
                     alias: request.alias.clone(),
                 })
                 .await?;
+            info!("{} th cache_invalidation completed", i);
 
             let secret = self.store.get_secret(&request.alias).await?;
+            info!(
+                "{} th get_secret completed. alias = {}. status: {}",
+                i,
+                request.alias,
+                secret.is_some()
+            );
             let new_secret = match &secret {
                 Some(secret) => DecodedSecret {
                     alias: secret.alias.clone(),
@@ -53,6 +67,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
                 return Ok(Err(ErrorCode::BadPayload));
             }
             if secret.is_none() {
+                info!("secret is none");
                 if let Some(max_secret_count) = SERVER_CONFIG.get().0.secret_limit {
                     if self.store.count_key_secrets(key_alias).await? >= max_secret_count {
                         return Ok(Err(ErrorCode::Forbidden));
@@ -60,9 +75,12 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
                 }
             }
 
+            info!("encoding new secret");
             let new_secret = new_secret.encode::<T>(&key)?;
+            info!("encoding new secret finished. trying to write.");
 
             if let Err(e) = self.store.store_secret(secret, new_secret).await {
+                info!("{} th write failed.", i);
                 if i == STORE_RETRY_COUNT - 1 {
                     return Err(e);
                 } else {
@@ -70,6 +88,7 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
                     continue;
                 }
             }
+            info!("{} th write succeeded.", i);
             break;
         }
         Ok(Ok(keyhouse::StoreSecretResponse {
@@ -87,7 +106,10 @@ impl<T: KeyhouseImpl + 'static> KeyhouseService<T> {
         let (token_spiffe_id, token_value) =
             KeyhouseService::<T>::extract_alt_token(&raw_request.get_ref().token);
 
-        if token_spiffe_id.is_none() && token_value.is_none() && !&raw_request.get_ref().token.is_empty() {
+        if token_spiffe_id.is_none()
+            && token_value.is_none()
+            && !&raw_request.get_ref().token.is_empty()
+        {
             match spiffe_id_value.as_ref() {
                 Some(s) => warn!("invalid token but cert is ok. ip: {} spiffe_id: {}", ip, s),
                 None => warn!("invalid token and no valid cert either. ip: {}", ip),
