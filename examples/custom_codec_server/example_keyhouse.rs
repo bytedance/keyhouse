@@ -1,6 +1,6 @@
-use keyhouse::master_key::mock::MockMasterKey;
+use keyhouse::codec::aes256gcm::AES256GCMCodecItem;
 use keyhouse::control;
-use crate::codec::AES256GCMCodecItem;
+use keyhouse::master_key::mock::MockMasterKey;
 
 #[derive(Debug, Clone)]
 pub struct ExampleKeyhouse;
@@ -16,6 +16,3 @@ impl keyhouse::KeyhouseImpl for ExampleKeyhouse {
     type IdentityCombiner = ();
     type KeyhouseExt = ();
 }
-
-
-

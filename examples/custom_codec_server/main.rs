@@ -1,4 +1,3 @@
-mod codec;
 mod example_keyhouse;
 use example_keyhouse::ExampleKeyhouse;
 
