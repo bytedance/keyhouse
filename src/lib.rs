@@ -32,6 +32,7 @@ pub use server_suite::handler::KeyhouseService;
 pub use server_suite::server::start_server;
 pub use server_suite::store;
 pub use server_suite::store::intermediate_key;
+pub mod codec;
 pub mod concrete;
 pub mod master_key;
 pub mod prelude;
