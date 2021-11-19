@@ -1,7 +1,7 @@
 [package]
 name = "keyhouse"
 version = "0.1.0"
-authors = ["Max Bruce <max.bruce12@gmail.com>", "Sergey Shekyan <shekyan@gmail.com>", "Yu Ding <dingelish@gmail.com>"]
+authors = ["Max Bruce <max.bruce12@gmail.com>", "Sergey Shekyan <shekyan@gmail.com>", "Yu Ding <dingelish@gmail.com>", "Lingxiang 'LinG' Wang <w93163red@gmail.com>"]
 edition = "2018"
 build = "build.rs"
 license = "Apache-2.0"
