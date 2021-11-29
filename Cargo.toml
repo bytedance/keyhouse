@@ -36,7 +36,7 @@ actix-web = { version = "=4.0.0-beta.9", features = ["rustls"] }
 actix-service = "2.0.0"
 actix-tls = "=3.0.0-beta.5"
 regex = "1.4"
-spire-workload = "1.1.3"
+spire-workload = "1.1.4"
 sha2 = "0.9"
 hex = "0.4"
 notify = "4.0"
