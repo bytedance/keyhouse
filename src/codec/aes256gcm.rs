@@ -1,6 +1,6 @@
 use crate::baseclient::ClientCoding;
 use crate::server_suite::coding::CodingItem;
-use anyhow::*;
+use anyhow::Result;
 use ring::aead;
 use ring::aead::{Nonce, NonceSequence};
 use ring::error::Unspecified;
