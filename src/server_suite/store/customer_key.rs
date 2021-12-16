@@ -5,8 +5,25 @@ use crate::server_suite::coding::CodingItem;
 use crate::KeyhouseImpl;
 use crate::{baseclient::ClientCoding, Metric};
 use prost::Message;
+use std::sync::Once;
 use tokio::time::{sleep, Duration};
 use zeroize::Zeroize;
+
+static mut DATA_KEY_ROTATION_MS: u64 = 0;
+static DATA_KEY_ROTATION_INIT: Once = Once::new();
+
+fn get_data_key_rotation_ms() -> u64 {
+    unsafe {
+        // get_data_key_rotation_ms is on the hot path (generate data key) so we have to make it
+        // as cheap as possible. DATA_KEY_ROTATION_MS contains such a cache.
+        // DATA_KEY_ROTATION_MS is guarded by the Once init struct and shall never be updated
+        // anywhere else
+        DATA_KEY_ROTATION_INIT.call_once(|| {
+            DATA_KEY_ROTATION_MS = crate::SERVER_CONFIG.get().0.data_key_rotation_seconds * 1000;
+        });
+        DATA_KEY_ROTATION_MS
+    }
+}
 
 pub async fn customer_key_reloader<T: KeyhouseImpl + 'static>(store: OwnedStore<T>) {
     loop {
@@ -255,7 +272,8 @@ impl CustomerKey {
         let seed = old_sensitives
             .intermediate_key
             .decode_customer_key::<T>(old_sensitives.seed.0.clone())?;
-        let epoch = crate::util::epoch() / (1000 * 60 * 60 * 24); // one per day
+        let data_key_rotation_ms: u64 = get_data_key_rotation_ms();
+        let epoch = crate::util::epoch() / data_key_rotation_ms; // default one per day
         Ok(T::ClientCoding::generate_epoch(seed, epoch))
     }
 
