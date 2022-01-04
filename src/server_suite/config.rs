@@ -52,6 +52,8 @@ pub struct RawConfig {
     pub customer_key_rotation_seconds: u64,
     #[serde(default = "make_default_u64::<1>")]
     pub customer_key_rotation_throttle_qps: u64,
+    #[serde(default = "make_default_u64::<86400>")]
+    pub data_key_rotation_seconds: u64,
 }
 
 #[derive(Clone)]
