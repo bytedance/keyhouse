@@ -13,7 +13,6 @@ use std::time::Duration;
 const RENEW_RETRY_TIMES: usize = 10;
 const RENEW_AFTER_SECONDS: std::time::Duration = std::time::Duration::from_secs(5);
 
-#[derive(Debug)]
 pub struct DynamicConfig<
     T: Serialize + DeserializeOwned + Send + Sync + Clone + 'static,
     Y: TryFrom<T, Error = Error> + Send + Sync + 'static,
@@ -117,12 +116,11 @@ mod tests {
     use tempfile::{NamedTempFile};
     use serde::{Deserialize};
 
-    #[derive(Serialize, Deserialize, Clone, Debug)]
+    #[derive(Serialize, Deserialize, Clone)]
     struct ConfigYaml {
         pub foo: String
     }
 
-    #[derive(Debug)]
     struct ConfigObj {}
 
     impl TryFrom<ConfigYaml> for ConfigObj {
@@ -155,6 +153,5 @@ mod tests {
         let r: DynamicConfig<ConfigYaml, ConfigObj> = DynamicConfig::new(String::from(
             tmp.into_temp_path().as_os_str().to_str().unwrap()),
             false).unwrap();
-        dbg!(r); 
     }
 }
