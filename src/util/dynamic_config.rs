@@ -150,7 +150,7 @@ mod tests {
     fn test_invalid_yaml() {
         let mut tmp = NamedTempFile::new().unwrap();
         tmp.write_all("bla: bla".as_bytes()).unwrap();
-        let r: DynamicConfig<ConfigYaml, ConfigObj> = DynamicConfig::new(String::from(
+        let _: DynamicConfig<ConfigYaml, ConfigObj> = DynamicConfig::new(String::from(
             tmp.into_temp_path().as_os_str().to_str().unwrap()),
             false).unwrap();
     }
