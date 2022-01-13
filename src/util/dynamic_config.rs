@@ -13,6 +13,7 @@ use std::time::Duration;
 const RENEW_RETRY_TIMES: usize = 10;
 const RENEW_AFTER_SECONDS: std::time::Duration = std::time::Duration::from_secs(5);
 
+#[derive(Debug)]
 pub struct DynamicConfig<
     T: Serialize + DeserializeOwned + Send + Sync + Clone + 'static,
     Y: TryFrom<T, Error = Error> + Send + Sync + 'static,
@@ -116,11 +117,12 @@ mod tests {
     use tempfile::{NamedTempFile};
     use serde::{Deserialize};
 
-    #[derive(Serialize, Deserialize, Clone)]
+    #[derive(Serialize, Deserialize, Clone, Debug)]
     struct ConfigYaml {
         pub foo: String
     }
 
+    #[derive(Debug)]
     struct ConfigObj {}
 
     impl TryFrom<ConfigYaml> for ConfigObj {
@@ -146,18 +148,13 @@ mod tests {
     }
 
     #[test]
+    #[should_panic(expected = "missing field `foo` at line 1 column 4")]
     fn test_invalid_yaml() {
         let mut tmp = NamedTempFile::new().unwrap();
-        if let Ok(_) = tmp.write_all("bla: bla".as_bytes()) {
-            let r: Result<DynamicConfig<ConfigYaml, ConfigObj>> = DynamicConfig::new(String::from(
-                tmp.into_temp_path().as_os_str().to_str().unwrap()),
-                false);
-            match r {
-                Ok(_) => { panic!("Should fail to create DynamicConfig with invalid config file"); }
-                _ => ()
-            }
-        } else {
-            panic!("Failed to write tmp yaml file");
-        }
+        tmp.write_all("bla: bla".as_bytes()).unwrap();
+        let r: DynamicConfig<ConfigYaml, ConfigObj> = DynamicConfig::new(String::from(
+            tmp.into_temp_path().as_os_str().to_str().unwrap()),
+            false).unwrap();
+        dbg!(r); 
     }
 }
