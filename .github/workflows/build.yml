@@ -51,7 +51,13 @@ jobs:
       run: |
         . ~/.cargo/env && 
         cd $GITHUB_WORKSPACE &&
-        cargo audit --ignore RUSTSEC-2020-0159 --ignore RUSTSEC-2020-0071
+        cargo audit \
+        # [chrono] Potential segfault in `localtime_r` invocations
+        --ignore RUSTSEC-2020-0159 \
+        # [time] Potential segfault in the time crate
+        --ignore RUSTSEC-2020-0071 \
+        # [brotli-sys] Integer overflow in the bundled Brotli C library
+        --ignore RUSTSEC-2021-0131
       shell: bash
     - name: cargo clippy
       run: |
