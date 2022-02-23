@@ -278,14 +278,22 @@ pub async fn actix_main<T: KeyhouseImpl + 'static>(store: OwnedStore<T>, auth: O
                 }
             })
             .wrap_fn(|req, srv| {
-                let raw_jwt_token = req
-                    .extensions()
-                    .get::<RawJwtToken>()
-                    .map(|x| x.token)
-                    .unwrap_or_default();
                 let response = srv.call(req);
-                async {
+                async move {
                     let mut response = response.await;
+                    let raw_jwt_token = response
+                        .as_ref()
+                        .ok()
+                        .map(|response| {
+                            response
+                                .request()
+                                .extensions()
+                                .get::<RawJwtToken>()
+                                .map(|x| x.token.to_owned())
+                                .unwrap_or_default()
+                        })
+                        .unwrap_or_default();
+
                     if let Ok(response) = response.as_mut() {
                         response.headers_mut().insert(
                             "Cache-Control".parse().unwrap(),
@@ -297,7 +305,7 @@ pub async fn actix_main<T: KeyhouseImpl + 'static>(store: OwnedStore<T>, auth: O
                         );
                         response.headers_mut().insert(
                             "Raw-JWT-Token".parse().unwrap(),
-                            raw_jwt_token.parse().unwrap(),
+                            raw_jwt_token.clone().parse().unwrap(),
                         );
                     }
                     response
