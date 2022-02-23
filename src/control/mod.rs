@@ -84,6 +84,11 @@ pub struct Identity {
     pub username: String,
 }
 
+#[derive(Clone)]
+pub struct RawJwtToken {
+    pub token: String,
+}
+
 pub struct ControlData<T: KeyhouseImpl + 'static> {
     pub store: OwnedStore<T>,
     pub auth: OwnedAuth<T>,
@@ -204,7 +209,9 @@ pub async fn actix_main<T: KeyhouseImpl + 'static>(store: OwnedStore<T>, auth: O
                     }
                 };
                 req.extensions_mut().insert(Identity { username });
-
+                req.extensions_mut().insert(RawJwtToken {
+                    token: jwt.to_string(),
+                });
                 Either::Left(srv.call(req))
             })
             .wrap_fn(|req, srv| {
@@ -271,6 +278,11 @@ pub async fn actix_main<T: KeyhouseImpl + 'static>(store: OwnedStore<T>, auth: O
                 }
             })
             .wrap_fn(|req, srv| {
+                let raw_jwt_token = req
+                    .extensions()
+                    .get::<RawJwtToken>()
+                    .map(|x| x.token)
+                    .unwrap_or_default();
                 let response = srv.call(req);
                 async {
                     let mut response = response.await;
@@ -282,6 +294,10 @@ pub async fn actix_main<T: KeyhouseImpl + 'static>(store: OwnedStore<T>, auth: O
                         response.headers_mut().insert(
                             "Access-Control-Allow-Origin".parse().unwrap(),
                             "*".parse().unwrap(),
+                        );
+                        response.headers_mut().insert(
+                            "Raw-JWT-Token".parse().unwrap(),
+                            raw_jwt_token.parse().unwrap(),
                         );
                     }
                     response
