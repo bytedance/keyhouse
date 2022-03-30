@@ -62,16 +62,33 @@ pub async fn start_server<T: KeyhouseImpl + 'static>(
     Ok(())
 }
 
+fn parse_certs(der_string: &String) -> Result<Vec<rustls::Certificate>> {
+    let res: Vec<rustls::Certificate> = rustls_pemfile::certs(&mut der_string.as_bytes())?
+        .iter()
+        .map(|v| rustls::Certificate(v.clone()))
+        .collect();
+
+    Ok(res)
+}
+
+fn parse_pkcs8_private_keys(key_string: &String) -> Result<Vec<rustls::PrivateKey>> {
+    let res: Vec<rustls::PrivateKey> =
+        rustls_pemfile::pkcs8_private_keys(&mut key_string.as_bytes())?
+            .iter()
+            .map(|v| rustls::PrivateKey(v.clone()))
+            .collect();
+
+    Ok(res)
+}
+
 pub async fn prepare_bundle(bundle: &LoadedTlsBundle) -> Result<Arc<Identity>> {
     let bundle_str = fs::read_to_string(&bundle.ca_path).await?;
     let certs_str = fs::read_to_string(&bundle.cert_path).await?;
     let key_str = fs::read_to_string(&bundle.key_path).await?;
     let loaded_bundle = spire_workload::Identity::from_rustls(
-        rustls::internal::pemfile::certs(&mut bundle_str.as_bytes())
-            .map_err(|_| anyhow!("failed to load bundle"))?,
-        rustls::internal::pemfile::certs(&mut certs_str.as_bytes())
-            .map_err(|_| anyhow!("failed to load certs"))?,
-        rustls::internal::pemfile::pkcs8_private_keys(&mut key_str.as_bytes())
+        parse_certs(&bundle_str).map_err(|_| anyhow!("failed to load bundle"))?,
+        parse_certs(&certs_str).map_err(|_| anyhow!("failed to load certs"))?,
+        parse_pkcs8_private_keys(&key_str)
             .ok()
             .map(|x| x.into_iter().next())
             .flatten()

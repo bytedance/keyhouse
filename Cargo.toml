@@ -17,7 +17,8 @@ tokio = { version = "1.0", features = ["full"] }
 log = "0.4"
 env_logger = "0.8"
 threadgroup = "0.1"
-rustls = { version = "0.19.0", features = ["dangerous_configuration"] }
+rustls = { version = "0.20.3", features = ["dangerous_configuration"] }
+rustls-pemfile = "0.3"
 webpki = "0.21"
 lazy_static = "1.4"
 rand = "0.8"
@@ -32,11 +33,11 @@ arc-swap = "0.4"
 futures = "0.3"
 base64 = "0.13"
 actix-rt = "2.3.0"
-actix-web = { version = "=4.0.0-beta.9", features = ["rustls"] }
+actix-web = { version = "=4.0.1", features = ["rustls"] }
 actix-service = "2.0.0"
-actix-tls = "=3.0.0-beta.5"
+actix-tls = "=3.0.3"
 regex = "1.4"
-spire-workload = "1.1.4"
+spire-workload = "1.1.5"
 sha2 = "0.9"
 hex = "0.4"
 notify = "4.0"
