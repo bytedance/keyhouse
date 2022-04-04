@@ -11,13 +11,13 @@ homepage = "https://github.com/bytedance/keyhouse"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tonic = { version = "0.5", features = ["tls"] }
-prost = "0.8"
+tonic = { version = "0.7", features = ["tls"] }
+prost = "0.10"
 tokio = { version = "1.0", features = ["full"] }
 log = "0.4"
 env_logger = "0.8"
 threadgroup = "0.1"
-rustls = { version = "0.20.3", features = ["dangerous_configuration"] }
+rustls = { version = "0.20", features = ["dangerous_configuration"] }
 rustls-pemfile = "0.3"
 webpki = "0.21"
 lazy_static = "1.4"
@@ -37,7 +37,7 @@ actix-web = { version = "=4.0.1", features = ["rustls"] }
 actix-service = "2.0.0"
 actix-tls = "=3.0.3"
 regex = "1.4"
-spire-workload = "1.1.5"
+spire-workload = "1.2"
 sha2 = "0.9"
 hex = "0.4"
 notify = "4.0"
@@ -50,8 +50,8 @@ zeroize = { version = "1.3", features = ["zeroize_derive"] }
 ring = { version = "0.16", features = ["std"] }
 
 [build-dependencies]
-tonic-build = "0.5"
-prost-build = "0.8"
+tonic-build = "0.7"
+prost-build = "0.10"
 
 [lib]
 name = "keyhouse"

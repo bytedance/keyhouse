@@ -4,7 +4,8 @@ use crate::store::OwnedStore;
 use crate::Metric;
 use actix_service::Service;
 use actix_web::{
-    dev::{Body, Response, ServiceRequest, ServiceResponse},
+    body::MessageBody,
+    dev::{Response, ServiceRequest, ServiceResponse},
     error::Error,
     http::Method,
     web,
@@ -89,25 +90,35 @@ pub struct ControlData<T: KeyhouseImpl + 'static> {
     pub auth: OwnedAuth<T>,
 }
 
-pub type ActixFuture = Pin<Box<dyn Future<Output = StdResult<ServiceResponse, Error>> + 'static>>;
-pub type ActixFutureLeft =
-    future::Either<ActixFuture, future::Ready<StdResult<ServiceResponse, Error>>>;
+// pub type ActixFuture =
+//     Pin<Box<dyn Future<Output = StdResult<ServiceResponse<dyn MessageBody>, Error>> + 'static>>;
+// pub type ActixFutureLeft =
+//     future::Either<ActixFuture, future::Ready<StdResult<ServiceResponse<dyn MessageBody>, Error>>>;
 
-pub fn early_response<R: Into<Response<Body>>>(req: ServiceRequest, response: R) -> ActixFuture {
+pub fn early_response<B: MessageBody + 'static, R: Into<Response<B>>>(
+    req: ServiceRequest,
+    response: R,
+) -> Pin<Box<dyn Future<Output = StdResult<ServiceResponse<B>, Error>> + 'static>> {
     Box::pin(future::ok(req.into_response(response)))
 }
 
-pub fn early_response_left<R: Into<Response<Body>>>(
+pub fn early_response_left<B: MessageBody + 'static, R: Into<Response<B>>>(
     req: ServiceRequest,
     response: R,
-) -> ActixFutureLeft {
+) -> future::Either<
+    Pin<Box<dyn Future<Output = StdResult<ServiceResponse<B>, Error>> + 'static>>,
+    future::Ready<StdResult<ServiceResponse<B>, Error>>,
+> {
     future::Either::Left(early_response(req, response))
 }
 
-pub fn response_left_responder<R: Responder + 'static>(
+pub fn response_left_responder<R: Responder, B: MessageBody + 'static>(
     req: ServiceRequest,
     response: R,
-) -> ActixFutureLeft {
+) -> future::Either<
+    Pin<Box<dyn Future<Output = StdResult<ServiceResponse<B>, Error>> + 'static>>,
+    future::Ready<StdResult<ServiceResponse<B>, Error>>,
+> {
     let (req, payload) = req.into_parts();
     let response = response.respond_to(&req);
     let req = ServiceRequest::from_parts(req, payload);
