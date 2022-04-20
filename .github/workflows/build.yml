@@ -51,17 +51,10 @@ jobs:
       run: |
         . ~/.cargo/env && 
         cd $GITHUB_WORKSPACE &&
-        cargo audit \
-        # [chrono] Potential segfault in `localtime_r` invocations
-        --ignore RUSTSEC-2020-0159 \
-        # [time] Potential segfault in the time crate
-        --ignore RUSTSEC-2020-0071 \
-        # [brotli-sys] Integer overflow in the bundled Brotli C library
-        --ignore RUSTSEC-2021-0131
-        # [net2] `net2` crate has been deprecated; use `socket2` instead
-        --ignore RUSTSEC-2020-0016
-        # [stdweb] stdweb is unmaintained
-        --ignore RUSTSEC-2020-0056
+        cargo audit --ignore RUSTSEC-2020-0159 --ignore RUSTSEC-2020-0071 \
+        --ignore RUSTSEC-2021-0131 --ignore RUSTSEC-2020-0016 \
+        --ignore RUSTSEC-2020-0056 --ignore RUSTSEC-2022-0013 \
+        --ignore RUSTSEC-2022-0014
       shell: bash
     - name: cargo clippy
       run: |
