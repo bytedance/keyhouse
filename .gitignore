@@ -2,3 +2,4 @@
 /target
 test_etcd/default.etcd
 tests/haproxy*
+Cargo.lock

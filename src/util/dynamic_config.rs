@@ -107,3 +107,51 @@ impl<
         self.data.load().clone()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::io::Write;
+
+    use super::*;
+    use tempfile::{NamedTempFile};
+    use serde::{Deserialize};
+
+    #[derive(Serialize, Deserialize, Clone)]
+    struct ConfigYaml {
+        pub foo: String
+    }
+
+    struct ConfigObj {}
+
+    impl TryFrom<ConfigYaml> for ConfigObj {
+        type Error = Error;
+
+        fn try_from(_: ConfigYaml) -> Result<ConfigObj> {
+            Ok(ConfigObj{})
+        } 
+
+    }
+
+    #[test]
+    fn test_valid_config_yaml() {
+        let mut tmp = NamedTempFile::new().unwrap();
+        if let Ok(_) = tmp.write_all("foo: bar".as_bytes()) {
+            let _: DynamicConfig<ConfigYaml, ConfigObj> =
+                DynamicConfig::new(String::from(
+                    tmp.into_temp_path().as_os_str().to_str().unwrap()),
+                    false).unwrap();
+        } else {
+            panic!("Failed to write tmp yaml file");
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "missing field `foo` at line 1 column 4")]
+    fn test_invalid_yaml() {
+        let mut tmp = NamedTempFile::new().unwrap();
+        tmp.write_all("bla: bla".as_bytes()).unwrap();
+        let _: DynamicConfig<ConfigYaml, ConfigObj> = DynamicConfig::new(String::from(
+            tmp.into_temp_path().as_os_str().to_str().unwrap()),
+            false).unwrap();
+    }
+}

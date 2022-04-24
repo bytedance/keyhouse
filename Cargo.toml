@@ -33,10 +33,11 @@ futures = "0.3"
 base64 = "0.13"
 actix-rt = "2.3.0"
 actix-web = { version = "=4.0.0-beta.9", features = ["rustls"] }
+actix-router = "=0.5.0-beta.2"
 actix-service = "2.0.0"
 actix-tls = "=3.0.0-beta.5"
 regex = "1.4"
-spire-workload = "1.1.4"
+spire-workload = "=1.1.4"
 sha2 = "0.9"
 hex = "0.4"
 notify = "4.0"
@@ -47,6 +48,9 @@ serde_yaml = "0.8"
 hyper = "0.14"
 zeroize = { version = "1.3", features = ["zeroize_derive"] }
 ring = { version = "0.16", features = ["std"] }
+
+[dev-dependencies]
+tempfile = "3.1.0"
 
 [build-dependencies]
 tonic-build = "0.5"
