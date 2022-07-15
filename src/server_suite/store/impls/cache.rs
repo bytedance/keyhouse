@@ -316,14 +316,17 @@ impl<T: KeyhouseImpl + 'static> MemStore<T> {
                     }
                 },
                 _ = time::sleep_until(current_min_delay).fuse() => {
-                    current_min_delay = Instant::now() + min_duration;
                     if !queued_events.is_empty() {
+                        let begin_time = Instant::now();
+                        let event_nums = queued_events.len();
                         self.clone().partial_reload(queued_events).await;
                         queued_events = vec![];
+                        debug!("partial reload {} event, cost {:?}.", event_nums, Instant::now() - begin_time);
                     }
+                    current_min_delay = Instant::now() + min_duration;
                 },
                 _ = time::sleep_until(current_max_delay).fuse() => {
-                    current_max_delay = Instant::now() + max_duration;
+                    let begin_time = Instant::now();
                     for event in queued_events.drain(..) {
                         if let Some(result) = event.result {
                             result.send(Ok(())).ok();
@@ -332,6 +335,8 @@ impl<T: KeyhouseImpl + 'static> MemStore<T> {
                     if let Err(e) = self.reload().await {
                         error!("error during regular reload, ignoring: {:?}", e);
                     }
+                    current_max_delay = Instant::now() + max_duration;
+                    debug!("full reload cost {:?}.", Instant::now() - begin_time);
                 },
             )
         }
